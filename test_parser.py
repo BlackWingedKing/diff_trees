@@ -17,14 +17,18 @@ X = iris.data
 y = iris.target
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
-print(X_train.shape, X_test.shape)
-print(y_train.shape, y_test.shape)
+# print(X_train.shape, X_test.shape)
+# print(y_train.shape, y_test.shape)
 
-clf = DecisionTreeClassifier(max_leaf_nodes=3, random_state=0)
+clf = DecisionTreeClassifier(max_leaf_nodes=10, random_state=0)
 clf.fit(X_train, y_train)
-
-decision_tree = clf
 
 """
     Now the testing part
 """
+from tree_parser import parse_tree
+import torch
+
+model = parse_tree(clf)
+
+print(model.forward(torch.Tensor(X_train)).shape)
