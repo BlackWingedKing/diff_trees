@@ -13,6 +13,10 @@ class DTModel(nn.Module):
         The idea is each of tree node is a neuron
         and activation with sigmoid(ai.xi - ti)
         and weights are not differentiable (ai is an indicator)
+
+        inputs:
+        nclasses: num_classes for classification
+        root: the sklearn dt tree's root node
     """
     def __init__(self, nclasses, root):
         super(DTModel, self).__init__()
@@ -48,6 +52,13 @@ class DTModel(nn.Module):
         return node*l_n, node*r_n
 
     def forward(self, x):
+        # a condition if people pass input in a funny way instead of Bxinput_size 
+        # this condition check is till unclear and needs to be discussed with amit and..
+        flag = False
+        if(len(x.shape) == 1):
+            x = x.view(1, -1)
+            flag = True
+        
         nodes = [None]*(self.nnodes)
         leaf_nodes = [[] for _ in range(self.nclasses)]
 
@@ -64,13 +75,23 @@ class DTModel(nn.Module):
         # any other special cases??
         if(self.nnodes > 1):
             out_l = [sum(leaf_nodes[c_i]) for c_i in range(self.nclasses)]
+            # print(out_l)
             p = torch.stack(out_l, dim=-1)
 
         else:
             # tree built with a single node
-            exit("tree built with single node, this hasn't been done yet")
+            exit("tree built with single node, this can't be converted to a proper model yet")
 
-        return p
+        # condition when we only have 2 classes so, we only need a single neuron output 
+        # instead of 1-p, p
+
+        if (self.nclasses == 2):
+            if(flag):
+                return p[:, 1]
+            else:
+                return p[:, 1].view(-1, 1)
+        else:
+            return p
 
 def parse_tree(tree):
     """
